@@ -1,0 +1,18 @@
+package models
+
+import "time"
+
+// Conversation 对话模型
+type Conversation struct {
+	ID          string    `json:"id" gorm:"primaryKey"`
+	Title       string    `json:"title"`        // 对话标题
+	CreatedAt   time.Time `json:"created_at"`   // 创建时间
+	UpdatedAt   time.Time `json:"updated_at"`   // 更新时间
+	Documents   []Document `json:"documents" gorm:"foreignKey:ConversationID"` // 关联的文档列表
+}
+
+// TableName 指定表名
+func (Conversation) TableName() string {
+	return "conversations"
+}
+

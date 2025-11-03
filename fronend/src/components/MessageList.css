@@ -1,0 +1,63 @@
+.message-list {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.message-list-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.welcome-message {
+  text-align: center;
+  color: #8e8ea0;
+}
+
+.welcome-message h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  color: #ececf1;
+}
+
+.welcome-message p {
+  font-size: 16px;
+}
+
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 20px;
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #8e8ea0;
+  animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  30% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+

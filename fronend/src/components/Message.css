@@ -1,0 +1,36 @@
+.message {
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+}
+
+.message-user {
+  background-color: #343541;
+}
+
+.message-assistant {
+  background-color: #444654;
+}
+
+.message-content {
+  flex: 1;
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+.message-text {
+  color: #ececf1;
+  font-size: 16px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.message-user .message-text {
+  color: #ececf1;
+}
+
+.message-assistant .message-text {
+  color: #d1d5db;
+}
+
