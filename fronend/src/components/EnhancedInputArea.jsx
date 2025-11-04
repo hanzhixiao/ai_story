@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import './EnhancedInputArea.css'
 
-function EnhancedInputArea({ onSendMessage, isLoading, models, selectedModel, onModelChange }) {
+function EnhancedInputArea({ onSendMessage, isLoading, models, selectedModel, onModelChange, hasMessages }) {
   const [input, setInput] = useState('')
   const textareaRef = useRef(null)
 
@@ -33,7 +33,10 @@ function EnhancedInputArea({ onSendMessage, isLoading, models, selectedModel, on
   }
 
   return (
-    <div className="enhanced-input-area">
+    <div className={`enhanced-input-area ${hasMessages ? 'has-messages' : 'no-messages'}`}>
+      {!hasMessages && (
+        <div className="input-welcome-text">开启一个故事</div>
+      )}
       <form onSubmit={handleSubmit} className="enhanced-input-form">
         <div className="input-top-bar">
           <select
@@ -55,7 +58,7 @@ function EnhancedInputArea({ onSendMessage, isLoading, models, selectedModel, on
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="输入你的想法或问题..."
+            placeholder={hasMessages ? "输入你的想法或问题..." : ""}
             rows={1}
             className="input-textarea"
           />

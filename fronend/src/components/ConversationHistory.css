@@ -1,10 +1,11 @@
 .conversation-history {
-  background-color: #202123;
-  border-right: 1px solid #565869;
+  background-color: rgba(32, 33, 35, 0.95);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   width: 260px;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
 }
 
@@ -14,25 +15,61 @@
   border-right: none;
 }
 
+/* 隐藏时显示的小边栏 */
+.conversation-history-sidebar {
+  width: 40px;
+  background-color: rgba(32, 33, 35, 0.95);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.conversation-history-sidebar:hover {
+  background-color: rgba(40, 41, 43, 0.95);
+}
+
+.sidebar-expand-icon {
+  color: rgba(236, 236, 241, 0.7);
+  transition: all 0.2s ease;
+}
+
+.conversation-history-sidebar:hover .sidebar-expand-icon {
+  color: #ececf1;
+  transform: translateX(2px);
+}
+
 .conversation-history-header {
   padding: 16px;
-  border-bottom: 1px solid #565869;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.conversation-history-header:hover {
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .conversation-history-title {
   color: #ececf1;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
 .collapse-icon {
-  color: #8e8ea0;
-  transition: transform 0.3s ease;
+  color: rgba(236, 236, 241, 0.7);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .collapse-icon.collapsed {
@@ -48,39 +85,40 @@
 .conversation-history-empty {
   padding: 20px;
   text-align: center;
-  color: #8e8ea0;
+  color: rgba(236, 236, 241, 0.5);
   font-size: 14px;
 }
 
 .conversation-item {
-  padding: 12px;
-  margin-bottom: 4px;
-  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 2px 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
   background-color: transparent;
 }
 
 .conversation-item:hover {
-  background-color: #343541;
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .conversation-item.active {
-  background-color: #343541;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .conversation-item-title {
   color: #ececf1;
   font-size: 14px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.4;
 }
 
 .conversation-item-time {
-  color: #8e8ea0;
-  font-size: 12px;
+  color: rgba(236, 236, 241, 0.5);
+  font-size: 11px;
 }
 
 .conversation-history-list::-webkit-scrollbar {
@@ -92,11 +130,11 @@
 }
 
 .conversation-history-list::-webkit-scrollbar-thumb {
-  background: #565869;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
 }
 
 .conversation-history-list::-webkit-scrollbar-thumb:hover {
-  background: #717386;
+  background: rgba(255, 255, 255, 0.3);
 }
 

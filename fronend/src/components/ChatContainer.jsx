@@ -24,6 +24,7 @@ function ChatContainer({ messages, onSendMessage, isLoading, models, selectedMod
         models={models}
         selectedModel={selectedModel}
         onModelChange={onModelChange}
+        hasMessages={messages.length > 0}
       />
     </div>
   )

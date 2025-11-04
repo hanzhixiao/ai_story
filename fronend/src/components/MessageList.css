@@ -4,28 +4,6 @@
   padding: 0 20px;
 }
 
-.message-list-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
-.welcome-message {
-  text-align: center;
-  color: #ececf1;
-}
-
-.welcome-message h1 {
-  font-size: 32px;
-  margin-bottom: 10px;
-  color: #ececf1;
-}
-
-.welcome-message p {
-  font-size: 16px;
-}
-
 .typing-indicator {
   display: flex;
   gap: 4px;

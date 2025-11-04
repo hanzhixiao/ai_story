@@ -4,6 +4,7 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  position: relative;
 }
 
 .chat-messages {
@@ -22,11 +23,11 @@
 }
 
 .chat-messages::-webkit-scrollbar-thumb {
-  background: #565869;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover {
-  background: #717386;
+  background: rgba(255, 255, 255, 0.3);
 }
 
