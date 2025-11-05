@@ -1,0 +1,212 @@
+.story-edit-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.story-edit-dialog {
+  background-color: rgba(32, 33, 35, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.story-edit-dialog-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.story-edit-dialog-title {
+  color: #ececf1;
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.story-edit-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.story-edit-dialog-close-btn {
+  background: transparent;
+  border: none;
+  color: rgba(236, 236, 241, 0.7);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.story-edit-dialog-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ececf1;
+}
+
+.story-edit-dialog-body {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.story-edit-dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.story-edit-dialog-label {
+  color: #ececf1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.story-edit-dialog-input,
+.story-edit-dialog-textarea {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #ececf1;
+  font-size: 14px;
+  padding: 12px;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.story-edit-dialog-input:focus,
+.story-edit-dialog-textarea:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.story-edit-dialog-textarea {
+  resize: vertical;
+  min-height: 200px;
+  line-height: 1.6;
+}
+
+.story-edit-dialog-input::placeholder,
+.story-edit-dialog-textarea::placeholder {
+  color: rgba(236, 236, 241, 0.5);
+}
+
+.story-edit-dialog-error {
+  padding: 12px;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 14px;
+}
+
+.story-edit-dialog-footer {
+  padding: 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.story-edit-dialog-cancel-btn,
+.story-edit-dialog-save-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.story-edit-dialog-cancel-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ececf1;
+}
+
+.story-edit-dialog-cancel-btn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.story-edit-dialog-save-btn {
+  background-color: rgba(16, 163, 127, 0.8);
+  color: #ffffff;
+}
+
+.story-edit-dialog-save-btn:hover:not(:disabled) {
+  background-color: rgba(16, 163, 127, 1);
+}
+
+.story-edit-dialog-cancel-btn:disabled,
+.story-edit-dialog-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.story-edit-dialog-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.story-edit-dialog-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.story-edit-dialog-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.story-edit-dialog-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+

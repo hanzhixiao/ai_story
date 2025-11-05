@@ -58,9 +58,11 @@ type CreateConversationWithTitleRequest struct {
 
 // StoryRequest 故事列表请求
 type StoryRequest struct {
-	Guid       string `json:"guid" form:"guid" binding:"required"`
-	DocumentId string `json:"document_id"`
-	Title      string `json:"title"`
+	Guid        string `json:"guid" form:"guid"` // guid可选，默认为"default"
+	DocumentId  string `json:"document_id"`
+	Title       string `json:"title"`
+	Content     string `json:"content"`
+	ContentHash string `json:"content_hash"`
 }
 
 // StoryResponse 故事列表响应

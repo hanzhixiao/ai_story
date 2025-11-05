@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import ChatContainer from './components/ChatContainer'
 import ConversationHistory from './components/ConversationHistory'
+import StoryEditDialog from './components/StoryEditDialog'
 import './App.css'
 
 function App() {
@@ -10,7 +11,12 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [currentConversationId, setCurrentConversationId] = useState(null)
   const [conversations, setConversations] = useState([])
+  const [stories, setStories] = useState([])
   const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false)
+  const [storyEditDialogOpen, setStoryEditDialogOpen] = useState(false)
+  const [storyEditContent, setStoryEditContent] = useState('')
+  const [storyEditTitle, setStoryEditTitle] = useState('')
+  const [storyEditDocumentId, setStoryEditDocumentId] = useState(null)
   const [isHistoryView, setIsHistoryView] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [hasMoreMessages, setHasMoreMessages] = useState(false)
@@ -34,6 +40,7 @@ function App() {
   useEffect(() => {
     fetchModels()
     fetchConversations()
+    fetchStories()
   }, [])
 
   const fetchModels = async () => {
@@ -56,6 +63,16 @@ function App() {
       setConversations(data.conversations || [])
     } catch (error) {
       console.error('Failed to fetch conversations:', error)
+    }
+  }
+
+  const fetchStories = async () => {
+    try {
+      const response = await fetch('/api/stories?guid=default')
+      const data = await response.json()
+      setStories(data.stories || [])
+    } catch (error) {
+      console.error('Failed to fetch stories:', error)
     }
   }
 
@@ -346,8 +363,10 @@ function App() {
       // 消息列表顺序：最早的在前（顶部），最新的在后（底部）
       const conversationMessages = documents.map((doc) => ({
         id: doc.id,
+        documentId: doc.id, // 历史消息的documentId就是id
         role: doc.role,
         content: doc.content,
+        onAddToStory: doc.role === 'assistant' ? handleAddToStory : undefined,
       }))
 
       // 设置消息（只显示最新10条）
@@ -405,8 +424,10 @@ function App() {
                   
                   const refreshMessages = refreshDocuments.map((doc) => ({
                     id: doc.id,
+                    documentId: doc.id, // 历史消息的documentId就是id
                     role: doc.role,
                     content: doc.content,
+                    onAddToStory: doc.role === 'assistant' ? handleAddToStory : undefined,
                   }))
                   
                   // 只有在当前对话仍然是目标对话时才更新消息
@@ -493,8 +514,10 @@ function App() {
 
       const olderMessages = documents.map((doc) => ({
         id: doc.id,
+        documentId: doc.id, // 历史消息的documentId就是id
         role: doc.role,
         content: doc.content,
+        onAddToStory: doc.role === 'assistant' ? handleAddToStory : undefined,
       }))
 
       // 将更早的消息插入到列表前面（按顺序渲染）
@@ -533,6 +556,101 @@ function App() {
     return null
   }
 
+  // 计算文本的SHA-256特征值
+  const calculateContentHash = async (content) => {
+    const encoder = new TextEncoder()
+    const data = encoder.encode(content)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+    return hashHex
+  }
+
+  const handleAddToStory = async (documentId) => {
+    try {
+      // 获取文档内容
+      const docResponse = await fetch(`/api/documents/${documentId}`)
+      if (!docResponse.ok) {
+        throw new Error('Failed to get document')
+      }
+      const doc = await docResponse.json()
+      
+      // 生成标题（使用文档内容的前50个字符）
+      let title = doc.content.substring(0, 50).trim()
+      if (doc.content.length > 50) {
+        title += '...'
+      }
+      if (!title) {
+        title = '未命名故事'
+      }
+
+      // 显示编辑对话框
+      setStoryEditContent(doc.content)
+      setStoryEditTitle(title)
+      setStoryEditDocumentId(documentId)
+      setStoryEditDialogOpen(true)
+    } catch (error) {
+      console.error('Failed to add to story:', error)
+    }
+  }
+
+  const handleSaveStory = async (content, title) => {
+    try {
+      // 计算内容特征值
+      const contentHash = await calculateContentHash(content)
+
+      // 创建故事
+      const response = await fetch('/api/stories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          guid: 'default',
+          document_id: storyEditDocumentId,
+          title: title,
+          content: content,
+          content_hash: contentHash,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // 刷新故事列表
+        await fetchStories()
+        return
+      } else {
+        // 根据后端返回的错误信息处理
+        if (data.error === 'duplicate_story') {
+          throw new Error('该故事已存在，请勿重复保存')
+        } else if (data.error === 'hash_mismatch') {
+          throw new Error('内容验证失败，请重新尝试')
+        } else {
+          throw new Error(data.error || '保存失败')
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save story:', error)
+      throw error
+    }
+  }
+
+  const handleSelectStory = async (story) => {
+    // 当选择故事时，加载对应的文档内容
+    try {
+      const docResponse = await fetch(`/api/documents/${story.document_id}`)
+      if (docResponse.ok) {
+        const doc = await docResponse.json()
+        // 显示故事内容（可以创建一个新的消息显示）
+        // 这里可以根据需要实现故事查看功能
+        console.log('Story selected:', story)
+      }
+    } catch (error) {
+      console.error('Failed to load story:', error)
+    }
+  }
+
   const handleSendMessage = async (message) => {
     if (!message.trim() || isLoading) return
 
@@ -558,10 +676,13 @@ function App() {
     setMessages((prev) => [...prev, userMessage])
     setIsLoading(true)
 
+    // 使用稳定的临时ID作为key，避免在流式响应过程中更新id导致组件重新挂载
+    const tempMessageId = Date.now() + 1
     const assistantMessage = {
-      id: Date.now() + 1,
+      id: tempMessageId,
       role: 'assistant',
       content: '',
+      onAddToStory: handleAddToStory,
     }
     setMessages((prev) => [...prev, assistantMessage])
 
@@ -597,6 +718,11 @@ function App() {
       readerRef.current = reader
       const decoder = new TextDecoder()
       let fullContent = ''
+      let documentID = null // 保存后端返回的真实文档ID
+      
+      // 定义元数据标记（需要在循环外定义，以便在循环后使用）
+      const metadataMarker = '<GRANDMA_METADATA>'
+      const metadataEndMarker = '</GRANDMA_METADATA>'
 
       while (true) {
         const { done, value } = await reader.read()
@@ -610,7 +736,36 @@ function App() {
         }
 
         const chunk = decoder.decode(value, { stream: true })
-        fullContent += chunk
+        
+        if (chunk.includes(metadataMarker)) {
+          // 提取元数据
+          const metadataStart = chunk.indexOf(metadataMarker)
+          const metadataEnd = chunk.indexOf(metadataEndMarker)
+          
+          if (metadataStart !== -1 && metadataEnd !== -1) {
+            // 提取元数据JSON
+            const metadataJSON = chunk.substring(
+              metadataStart + metadataMarker.length,
+              metadataEnd
+            )
+            try {
+              const metadata = JSON.parse(metadataJSON)
+              if (metadata.document_id) {
+                documentID = metadata.document_id
+              }
+            } catch (e) {
+              console.error('Failed to parse metadata:', e)
+            }
+            
+            // 只保留元数据之前的内容
+            fullContent += chunk.substring(0, metadataStart)
+          } else {
+            // 元数据可能跨多个chunk，暂时保留内容
+            fullContent += chunk
+          }
+        } else {
+          fullContent += chunk
+        }
 
         // 检查是否还在当前对话（如果切换了对话，停止更新消息）
         // 使用ref来获取最新的conversationId值
@@ -619,21 +774,110 @@ function App() {
             const newMessages = [...prev]
             const lastMessage = newMessages[newMessages.length - 1]
             if (lastMessage && lastMessage.role === 'assistant') {
-              lastMessage.content = fullContent
+              // 移除可能的元数据标记
+              let content = fullContent
+              if (content.includes(metadataMarker)) {
+                const metadataStart = content.indexOf(metadataMarker)
+                content = content.substring(0, metadataStart)
+              }
+              // 只更新content，不更新id（避免key变化导致组件重新挂载）
+              // id在循环结束后再更新，这样可以避免组件重新挂载导致打字机效果重新开始
+              lastMessage.content = content
+              // 确保onAddToStory回调存在
+              if (!lastMessage.onAddToStory) {
+                lastMessage.onAddToStory = handleAddToStory
+              }
+              // 注意：不在循环内更新id，避免key变化导致组件重新挂载
             }
             return newMessages
           })
         }
       }
       
+      // 流式响应结束后，处理元数据并更新消息ID（如果收到了文档ID）
+      // 确保从内容中移除元数据标记，并提取元数据
+      let finalContent = fullContent
+      if (fullContent.includes(metadataMarker)) {
+        const metadataStart = fullContent.indexOf(metadataMarker)
+        const metadataEnd = fullContent.indexOf(metadataEndMarker)
+        
+        if (metadataStart !== -1 && metadataEnd !== -1) {
+          // 提取元数据JSON
+          const metadataJSON = fullContent.substring(
+            metadataStart + metadataMarker.length,
+            metadataEnd
+          )
+          try {
+            const metadata = JSON.parse(metadataJSON)
+            if (metadata.document_id) {
+              documentID = metadata.document_id
+            }
+          } catch (e) {
+            console.error('Failed to parse metadata:', e)
+          }
+          
+          // 移除元数据标记，只保留实际内容
+          finalContent = fullContent.substring(0, metadataStart)
+        } else {
+          // 如果标记不完整，至少移除开始标记
+          finalContent = fullContent.substring(0, metadataStart)
+        }
+      }
+      
+      // 流式响应结束后，只更新文档ID和回调，不更新内容（避免触发打字机效果重新渲染）
+      // 内容已经在循环内更新过了，这里只需要更新元数据
+      // 注意：不更新id（因为id是key），而是添加documentId属性，避免key变化导致组件重新挂载
+      if (currentConversationIdRef.current === conversationId) {
+        setMessages((prev) => {
+          const lastMessage = prev[prev.length - 1]
+          if (!lastMessage || lastMessage.role !== 'assistant') {
+            return prev // 不需要更新，返回原数组
+          }
+          
+          // 检查是否需要更新
+          const needsUpdateDocumentId = documentID && lastMessage.documentId !== documentID
+          const needsUpdateCallback = !lastMessage.onAddToStory
+          
+          // 如果不需要更新，直接返回原数组（避免触发重新渲染）
+          if (!needsUpdateDocumentId && !needsUpdateCallback) {
+            return prev
+          }
+          
+          // 需要更新，创建新数组（但保持content和id不变，避免触发打字机效果重新渲染）
+          const newMessages = [...prev]
+          const updatedLastMessage = { 
+            ...newMessages[newMessages.length - 1],
+            // 保持content和id引用不变，避免触发打字机效果重新渲染和组件重新挂载
+            content: newMessages[newMessages.length - 1].content,
+            id: newMessages[newMessages.length - 1].id
+          }
+          
+          // 更新documentId（如果需要）- 不更新id，避免key变化
+          if (needsUpdateDocumentId && documentID) {
+            updatedLastMessage.documentId = documentID
+          }
+          
+          // 更新回调（如果需要）
+          if (needsUpdateCallback) {
+            updatedLastMessage.onAddToStory = handleAddToStory
+          }
+          
+          newMessages[newMessages.length - 1] = updatedLastMessage
+          return newMessages
+        })
+      }
+      
       // 清理引用
       readerRef.current = null
       abortControllerRef.current = null
+      
       // 只有在新对话第一次发送消息时才刷新列表（更新标题）
       // 已存在的对话不需要刷新，因为用户已经在当前对话中
       if (isNewConversation) {
         await fetchConversations()
       }
+      
+      // 注意：不再需要单独更新onAddToStory回调，因为在上面的代码中已经处理过了
     } catch (error) {
       // 如果是AbortError，说明请求被取消了（可能是切换对话），不需要处理错误
       if (error.name === 'AbortError') {
@@ -684,6 +928,8 @@ function App() {
           setHistoryWidth(newWidth)
           localStorage.setItem('conversationHistoryWidth', newWidth.toString())
         }}
+        stories={stories}
+        onSelectStory={handleSelectStory}
       />
       <div className="main-content">
         <div className="new-chat-button-container">
@@ -713,6 +959,18 @@ function App() {
           shouldScrollToBottom={shouldScrollToBottom}
         />
       </div>
+      <StoryEditDialog
+        isOpen={storyEditDialogOpen}
+        content={storyEditContent}
+        title={storyEditTitle}
+        onClose={() => {
+          setStoryEditDialogOpen(false)
+          setStoryEditContent('')
+          setStoryEditTitle('')
+          setStoryEditDocumentId(null)
+        }}
+        onSave={handleSaveStory}
+      />
     </div>
   )
 }
