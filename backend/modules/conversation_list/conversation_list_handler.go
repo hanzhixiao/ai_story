@@ -1,6 +1,7 @@
 package conversation_list
 
 import (
+	"grandma/backend/models"
 	"net/http"
 	"strconv"
 
@@ -40,4 +41,38 @@ func (h *ConversationListHandler) CreateNewConversation(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, conversation)
+}
+
+// CreateNewConversationWithTitle 创建新对话并生成标题
+func (h *ConversationListHandler) CreateNewConversationWithTitle(c *gin.Context) {
+	var req models.CreateConversationWithTitleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	conversation, err := h.service.CreateNewConversationWithTitle(req.UserInputs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, conversation)
+}
+
+// GenerateTitle 智能命名接口
+func (h *ConversationListHandler) GenerateTitle(c *gin.Context) {
+	var req models.CreateConversationWithTitleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	title, err := h.service.GenerateTitleForConversation(req.UserInputs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"title": title})
 }

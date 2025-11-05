@@ -1,9 +1,85 @@
+import { useState, useEffect, useRef } from 'react'
+import DeleteConfirmDialog from './DeleteConfirmDialog'
 import './ConversationHistory.css'
 
-function ConversationHistory({ conversations, currentConversationId, onSelectConversation, isCollapsed, onToggleCollapse }) {
+function ConversationHistory({ conversations, currentConversationId, onSelectConversation, isCollapsed, onToggleCollapse, onRenameConversation, onDeleteConversation, width, onWidthChange }) {
+  const [editingId, setEditingId] = useState(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteTargetId, setDeleteTargetId] = useState(null)
+  const [deleteTargetTitle, setDeleteTargetTitle] = useState('')
+  const [isResizing, setIsResizing] = useState(false)
+  const resizeRef = useRef(null)
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isResizing && resizeRef.current) {
+        const newWidth = e.clientX
+        if (newWidth >= 200 && newWidth <= 500) {
+          onWidthChange(newWidth)
+        }
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+    }
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+  }, [isResizing, onWidthChange])
+
+  const handleResizeStart = (e) => {
+    e.preventDefault()
+    setIsResizing(true)
+  }
+
+  const handleRenameClick = (e, conversation) => {
+    e.stopPropagation()
+    setEditingId(conversation.id)
+    setEditTitle(conversation.title)
+  }
+
+  const handleRenameSubmit = async (e, conversationId) => {
+    e.stopPropagation()
+    if (editTitle.trim() && editTitle.trim() !== conversations.find(c => c.id === conversationId)?.title) {
+      await onRenameConversation(conversationId, editTitle.trim())
+    }
+    setEditingId(null)
+    setEditTitle('')
+  }
+
+  const handleRenameCancel = (e) => {
+    e.stopPropagation()
+    setEditingId(null)
+    setEditTitle('')
+  }
+
+  const handleKeyDown = (e, conversationId) => {
+    if (e.key === 'Enter') {
+      handleRenameSubmit(e, conversationId)
+    } else if (e.key === 'Escape') {
+      handleRenameCancel(e)
+    }
+  }
+
   return (
     <>
-      <div className={`conversation-history ${isCollapsed ? 'collapsed' : ''}`}>
+      <div
+        className={`conversation-history ${isCollapsed ? 'collapsed' : ''}`}
+        style={!isCollapsed && width ? { width: `${width}px` } : {}}
+      >
         <div className="conversation-history-header" onClick={onToggleCollapse}>
           <span className="conversation-history-title">历史对话</span>
           <svg
@@ -35,14 +111,82 @@ function ConversationHistory({ conversations, currentConversationId, onSelectCon
                   }`}
                   onClick={() => onSelectConversation(conv.id)}
                 >
-                  <div className="conversation-item-title">{conv.title}</div>
-                  <div className="conversation-item-time">
-                    {new Date(conv.updated_at).toLocaleDateString('zh-CN')}
-                  </div>
+                  {editingId === conv.id ? (
+                    <div className="conversation-item-edit" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, conv.id)}
+                        onBlur={(e) => handleRenameSubmit(e, conv.id)}
+                        className="conversation-item-edit-input"
+                        autoFocus
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="conversation-item-content">
+                        <div className="conversation-item-title" title={conv.title}>{conv.title}</div>
+                        <div className="conversation-item-time">
+                          {new Date(conv.updated_at).toLocaleDateString('zh-CN')}
+                        </div>
+                      </div>
+                      <div className="conversation-item-actions">
+                        <button
+                          className="conversation-item-rename-btn"
+                          onClick={(e) => handleRenameClick(e, conv)}
+                          title="重命名"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                            <path
+                              d="M11.333 2.667a1.414 1.414 0 0 1 2 2L5.333 12l-2.666.667L3.333 10l8-8z"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          className="conversation-item-delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            // 检查localStorage中是否设置了不再提醒
+                            const dontShowAgain = localStorage.getItem('dontShowDeleteConfirm') === 'true'
+                            if (dontShowAgain) {
+                              onDeleteConversation(conv.id)
+                            } else {
+                              setDeleteTargetId(conv.id)
+                              setDeleteTargetTitle(conv.title)
+                              setDeleteDialogOpen(true)
+                            }
+                          }}
+                          title="删除"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                            <path
+                              d="M4 4l8 8M12 4l-8 8"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))
             )}
           </div>
+        )}
+        {!isCollapsed && (
+          <div
+            ref={resizeRef}
+            className="conversation-history-resizer"
+            onMouseDown={handleResizeStart}
+          />
         )}
       </div>
       {isCollapsed && (
@@ -64,6 +208,23 @@ function ConversationHistory({ conversations, currentConversationId, onSelectCon
           </svg>
         </div>
       )}
+      <DeleteConfirmDialog
+        isOpen={deleteDialogOpen}
+        onConfirm={() => {
+          if (deleteTargetId) {
+            onDeleteConversation(deleteTargetId)
+          }
+          setDeleteDialogOpen(false)
+          setDeleteTargetId(null)
+          setDeleteTargetTitle('')
+        }}
+        onCancel={() => {
+          setDeleteDialogOpen(false)
+          setDeleteTargetId(null)
+          setDeleteTargetTitle('')
+        }}
+        conversationTitle={deleteTargetTitle}
+      />
     </>
   )
 }
