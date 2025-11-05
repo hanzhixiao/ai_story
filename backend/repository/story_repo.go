@@ -35,7 +35,32 @@ func (r *StoryRepository) GetByGuid(Guid string) ([]models.Story, error) {
 	return stories, nil
 }
 
+// GetAll 获取所有故事（用于默认guid）
+func (r *StoryRepository) GetAll() ([]models.Story, error) {
+	var stories []models.Story
+	err := r.db.Preload("Document").Order("created_at DESC").Find(&stories).Error
+	if err != nil {
+		fmt.Printf("[Story_repo GetAll] Error: %+v\n", err)
+		return nil, err
+	}
+	return stories, nil
+}
+
 // Delete 删除文档
 func (r *StoryRepository) Delete(id string) error {
 	return r.db.Delete(&models.Story{}, "id = ?", id).Error
+}
+
+// GetByContentHash 根据内容特征值查找故事
+func (r *StoryRepository) GetByContentHash(guid, contentHash string) (*models.Story, error) {
+	var story models.Story
+	err := r.db.Where("guid = ? AND content_hash = ?", guid, contentHash).First(&story).Error
+	if err != nil {
+		// 如果是记录不存在的错误，返回nil而不是错误
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &story, nil
 }

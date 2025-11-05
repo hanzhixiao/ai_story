@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"fmt"
 	"grandma/backend/models"
 	"io"
 	"net/http"
@@ -43,9 +44,15 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 		return
 	}
 
-	// 返回对话ID和文档ID（可选）
-	_ = conversationID
-	_ = documentID
+	// 在流式响应结束时，通过特殊标记返回文档ID和对话ID
+	// 使用特殊的分隔符来标识这是元数据
+	metadata := fmt.Sprintf("\n\n<GRANDMA_METADATA>{\"conversation_id\":\"%s\",\"document_id\":\"%s\"}</GRANDMA_METADATA>", conversationID, documentID)
+	writer.Write([]byte(metadata))
+
+	// 确保数据被刷新
+	if flusher, ok := c.Writer.(http.Flusher); ok {
+		flusher.Flush()
+	}
 }
 
 // streamWriter 包装响应写入器以支持流式输出

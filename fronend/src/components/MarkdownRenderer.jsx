@@ -42,6 +42,10 @@ function MarkdownRenderer({ text, speed = 20, enableTypewriter = true }) {
         currentIndexRef.current = newTextStart
         setDisplayedText(text.slice(0, currentIndexRef.current))
       }
+    } else if (text === prevTextRef.current) {
+      // 文本完全相同，不需要重新开始，保持当前状态
+      // 这种情况通常发生在组件重新渲染但内容没有变化时
+      return
     } else {
       // 新文本，重新开始
       setDisplayedText('')

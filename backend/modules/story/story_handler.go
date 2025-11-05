@@ -22,10 +22,10 @@ func NewStoryHandler(service *StoryService) *StoryHandler {
 func (h *StoryHandler) GetStoryList(c *gin.Context) {
 	fmt.Println("[story_handler GetStoryList] Start")
 	var req models.StoryRequest
+	// guid参数可选，如果不提供则默认为"default"
 	if err := c.ShouldBindQuery(&req); err != nil {
-		fmt.Printf("[Story_handler GetStoryList] Error: %+v\n", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		// 如果绑定失败，尝试使用默认值
+		req.Guid = "default"
 	}
 
 	response, err := h.service.GetStoryList(req.Guid)
@@ -37,7 +37,7 @@ func (h *StoryHandler) GetStoryList(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// CreateStory 创建新对话
+// CreateStory 创建新故事
 func (h *StoryHandler) CreateStory(c *gin.Context) {
 	var req models.StoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -45,8 +45,24 @@ func (h *StoryHandler) CreateStory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	story, err := h.service.CreateStory(req.Guid, req.DocumentId, req.Title)
+
+	// 验证必需字段
+	if req.Content == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "content is required"})
+		return
+	}
+
+	story, err := h.service.CreateStory(req.Guid, req.DocumentId, req.Title, req.Content, req.ContentHash)
 	if err != nil {
+		// 根据错误类型返回不同的状态码
+		if err.Error() == "duplicate_story" {
+			c.JSON(http.StatusConflict, gin.H{"error": "duplicate_story"})
+			return
+		}
+		if err.Error() == "hash_mismatch" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "hash_mismatch"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

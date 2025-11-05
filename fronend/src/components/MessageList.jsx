@@ -25,7 +25,7 @@ function MessageList({ messages, isLoading, enableTypewriter = true, onLoadMore,
         </div>
       )}
       {messages.map((message) => (
-        <Message key={message.id} message={message} enableTypewriter={enableTypewriter} />
+        <Message key={message.id} message={message} enableTypewriter={enableTypewriter} onAddToStory={message.onAddToStory} />
       ))}
       {isLoading && messages[messages.length - 1]?.role === 'assistant' && (
         <div className="typing-indicator">

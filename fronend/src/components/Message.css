@@ -59,3 +59,79 @@
   color: rgba(236, 236, 241, 0.9);
 }
 
+/* 消息操作按钮 */
+.message {
+  position: relative;
+}
+
+.message-content {
+  position: relative;
+}
+
+.message-actions {
+  position: absolute;
+  bottom: 8px;
+  right: -40px;
+  z-index: 10;
+}
+
+.message-user .message-actions {
+  right: 8px;
+}
+
+.message-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(236, 236, 241, 0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.message-action-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ececf1;
+}
+
+.message-menu {
+  position: absolute;
+  bottom: 40px;
+  right: -40px;
+  background-color: rgba(32, 33, 35, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 4px;
+  min-width: 140px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.message-user .message-menu {
+  right: 0;
+}
+
+.message-menu-item {
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  color: #ececf1;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.message-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
